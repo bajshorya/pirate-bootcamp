@@ -31,10 +31,21 @@ import {
   console.log("Current balance of 'payer' (in SOL):", currentBalance / LAMPORTS_PER_SOL);
 
   // airdrop on low balance
-  if (currentBalance <= LAMPORTS_PER_SOL) {
-    console.log("Low balance, requesting an airdrop...");
-    await connection.requestAirdrop(payer.publicKey, LAMPORTS_PER_SOL);
-  }
+ if (currentBalance <= LAMPORTS_PER_SOL) {
+   console.log("Low balance, requesting an airdrop...");
+   const airdropSignature = await connection.requestAirdrop(payer.publicKey, LAMPORTS_PER_SOL);
+
+   // Wait for confirmation
+   await connection.confirmTransaction(airdropSignature);
+
+   const newBalance = await connection.getBalance(payer.publicKey);
+   console.log("New balance of 'payer' (in lamports):", newBalance);
+   console.log("New balance of 'payer' (in SOL):", newBalance / LAMPORTS_PER_SOL);
+
+   if (newBalance <= currentBalance) {
+     throw new Error("Airdrop failed or insufficient funds.");
+   }
+ }
 
   //////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////
